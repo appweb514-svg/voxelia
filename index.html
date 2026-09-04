@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voxelia — Monde voxel ouvert</title>
+  <meta name="description" content="Voxelia : jeu de construction et d'exploration en voxels, monde procédural, artisanat, créatures, cycle jour/nuit. Assets 100% originaux." />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="crosshair">+</div>
+      <div id="hitmarker"></div>
+      <div id="topbar">
+        <div id="clock">☀ 06:00</div>
+        <div id="compass">N</div>
+        <div id="fps">60 FPS</div>
+      </div>
+      <div id="toasts"></div>
+      <div id="vitals">
+        <div id="hearts"></div>
+        <div id="hunger"></div>
+        <div id="xpbar"><div id="xpfill"></div><span id="xplvl">0</span></div>
+      </div>
+      <div id="hotbar"></div>
+      <div id="hint">Clique gauche : casser • Clique droit : poser • E : inventaire • F : voler • F1 : aide</div>
+      <div id="blockname"></div>
+      <div id="bossbar" class="hidden"></div>
+    </div>
+
+    <!-- Menus -->
+    <div id="menu" class="overlay">
+      <div class="panel title-panel">
+        <h1>VOXELIA</h1>
+        <p class="subtitle">Exploration • Minage • Artisanat • Survie</p>
+        <div class="seed-row">
+          <label for="seed">Graine du monde</label>
+          <input id="seed" maxlength="24" placeholder="aléatoire" />
+          <button id="dice" title="Graine aléatoire">🎲</button>
+        </div>
+        <div class="btn-col">
+          <button id="btn-play" class="primary">▶ Jouer</button>
+          <button id="btn-continue" class="hidden">↻ Continuer la partie</button>
+          <button id="btn-help">❓ Comment jouer</button>
+          <button id="btn-options">⚙ Options</button>
+        </div>
+        <p class="foot">Univers et graphismes 100% originaux — aucune ressource de Minecraft.</p>
+      </div>
+    </div>
+
+    <div id="help" class="overlay hidden">
+      <div class="panel">
+        <h2>Comment jouer</h2>
+        <div class="help-grid">
+          <div><b>Z Q S D / WASD</b><span>Se déplacer</span></div>
+          <div><b>Espace</b><span>Sauter / nager / monter (vol)</span></div>
+          <div><b>F</b><span>Activer / couper le vol</span></div>
+          <div><b>Clic gauche</b><span>Casser / attaquer</span></div>
+          <div><b>Clic droit</b><span>Poser / manger / interagir</span></div>
+          <div><b>1–9 / molette</b><span>Choisir un objet</span></div>
+          <div><b>E</b><span>Inventaire et artisanat</span></div>
+          <div><b>Clic droit sur établi</b><span>Artisanat 3×3</span></div>
+          <div><b>Clic droit sur four</b><span>Fondre les minerais</span></div>
+          <div><b>Échap</b><span>Pause</span></div>
+          <div><b>F1</b><span>Aide rapide</span></div>
+          <div><b>F3</b><span>Infos de débogage</span></div>
+        </div>
+        <h3>Survie</h3>
+        <p>Minez du bois puis de la pierre, fabriquez des outils sur un établi, éclairez avec des torches : les <b>Zombis</b> sortent la nuit. Mangez des pommes et de la viande pour garder vos cœurs. Le charbon fond les minerais de fer dans le four.</p>
+        <button id="btn-help-close" class="primary">Compris !</button>
+      </div>
+    </div>
+
+    <div id="options" class="overlay hidden">
+      <div class="panel">
+        <h2>Options</h2>
+        <label>Distance d'affichage <span id="opt-dist-val">4</span><input id="opt-dist" type="range" min="2" max="7" step="1" value="4" /></label>
+        <label>Sensibilité <span id="opt-sens-val">1.0</span><input id="opt-sens" type="range" min="0.3" max="2.5" step="0.1" value="1" /></label>
+        <label>Volume <span id="opt-vol-val">70</span><input id="opt-vol" type="range" min="0" max="100" step="1" value="70" /></label>
+        <label class="row"><input id="opt-shadows" type="checkbox" checked /> Ombres douces des faces</label>
+        <button id="btn-options-close" class="primary">Retour</button>
+      </div>
+    </div>
+
+    <div id="pause" class="overlay hidden">
+      <div class="panel">
+        <h2>Pause</h2>
+        <div class="btn-col">
+          <button id="btn-resume" class="primary">▶ Reprendre</button>
+          <button id="btn-save">💾 Sauvegarder</button>
+          <button id="btn-respawn">⟳ Réapparaître</button>
+          <button id="btn-quit">🏠 Menu principal</button>
+        </div>
+        <p id="save-msg" class="foot"></p>
+      </div>
+    </div>
+
+    <div id="dead" class="overlay hidden">
+      <div class="panel">
+        <h2>Vous êtes tombé…</h2>
+        <p id="death-cause">Les créatures de la nuit ont eu raison de vous.</p>
+        <button id="btn-dead-respawn" class="primary">Réapparaître</button>
+      </div>
+    </div>
+
+    <!-- Inventaire -->
+    <div id="inventory" class="overlay hidden">
+      <div class="panel wide">
+        <h2 id="inv-title">Inventaire</h2>
+        <div id="inv-layout">
+          <div>
+            <h3>Artisanat <span id="craft-size-label"></span></h3>
+            <div class="craft-row">
+              <div id="craft-grid"></div>
+              <div id="craft-arrow">➜</div>
+              <div id="craft-out" class="slot out"></div>
+            </div>
+            <h3>Fourneau</h3>
+            <p class="dim">Clic droit sur un fourneau posé pour fondre les minerais.</p>
+          </div>
+          <div>
+            <h3>Sac (<span id="inv-count">0</span>/27)</h3>
+            <div id="inv-grid"></div>
+            <h3>Barre rapide</h3>
+            <div id="inv-hotbar"></div>
+          </div>
+        </div>
+        <p class="dim">Glisser-déposer pour déplacer • Clic droit sur une pile : 1 objet • Maj+clic : transfert rapide</p>
+        <button id="btn-inv-close" class="primary">Fermer (E)</button>
+      </div>
+    </div>
+
+    <!-- Fourneau -->
+    <div id="furnace" class="overlay hidden">
+      <div class="panel">
+        <h2>Fourneau</h2>
+        <div class="furnace-row">
+          <div class="slot" id="fur-in" title="Minerai à fondre"></div>
+          <div class="fur-mid"><div id="fur-fire">🔥</div><div id="fur-prog"><div id="fur-prog-fill"></div></div></div>
+          <div class="slot" id="fur-fuel" title="Combustible (charbon, bois…)"></div>
+          <div id="fur-arrow">➜</div>
+          <div class="slot out" id="fur-out" title="Résultat"></div>
+        </div>
+        <button id="btn-fur-close" class="primary">Fermer</button>
+      </div>
+    </div>
+
+    <div id="loading" class="overlay hidden">
+      <div class="panel"><h2 id="loading-title">Génération du monde…</h2><div id="loadbar"><div id="loadfill"></div></div></div>
+    </div>
+    <div id="errbox" class="hidden"></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

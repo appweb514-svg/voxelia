@@ -1,0 +1,21 @@
+{
+  "name": "voxelia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Voxelia — jeu voxel type Minecraft, monde ouvert procédural (assets 100% originaux)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:logic": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@types/three": "0.160.0",
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "vite": "5.4.21"
+  },
+  "packageManager": "pnpm@11.7.0"
+}
